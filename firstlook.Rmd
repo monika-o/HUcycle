@@ -1,0 +1,185 @@
+---
+subtitle: "Hausarbeit im Modul Datenanalyse I"
+author: 
+- Lea Runge (Matrikelnummer 620879)
+date: "`r format(Sys.time(), '%d. %B %Y')`"
+urlcolor: blue
+output:
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 3 
+    citation_package: natbib
+    extra_dependencies:
+      babel: ["ngerman"]
+      #flafter: null
+      float: null
+header-includes:    
+ #\usepackage{float}
+ #\floatplacement{figure}{H}
+ \usepackage{setspace}
+ \setlength{\skip\footins}{1cm}
+ \usepackage{fancyhdr}
+ 
+bibliography: Bibliography.bib
+biblio-style: apalike-german
+fontsize: 11pt
+mainfont: Calibri
+monofont: Calibri
+geometry: margin=2.5cm
+papersize: a4
+---
+
+```{r setup, include=FALSE}
+##import needed packages
+knitr::opts_chunk$set(echo = TRUE)
+.packages <- c("bookdown","colorspace","corrplot","cowplot","data.table","DescTools","dplyr","flextable","ggalluvial","ggmosaic","ggplot2","grid","kableExtra","magrittr","missMethods","officer","RColorBrewer","scales","tidyr","tidyverse")
+
+.inst     <- .packages %in% installed.packages()
+if(length(.packages[!.inst]) > 0) install.packages(.packages[!.inst])
+.loading  <- lapply(.packages, require, character.only=TRUE)
+if(any(!unlist(.loading))) stop("looks like some library did not load")
+knitr::opts_chunk$set(warning = FALSE)
+options(scipen = 1, digits = 2)
+options(OutDec= ",")
+```
+
+
+## data prep
+
+
+```{r fig.cap="Vorbereitung Datensatz"}
+##vorbereitung des Datensatzes
+source("R/vb.R", local = knitr::knit_global())
+```
+
+## overview facts
+
+```{r echo=FALSE, message=FALSE,fig.cap="facts", fig.height=2, fig.id='overview', label='overview'}
+for (i in 1:14){
+  ##erstelle für alle gewünschten Variablen barplots in denen absolute und relative Häufigkeiten angegeben sind
+  
+  var_x<-colnames(gesamt)[i]
+  var_x
+  p <- 
+   ggplot(subset(gesamt,!is.na(gesamt[,i]))) +
+   aes_string(var_x)
+  
+
+ p <- p + geom_bar()+
+  geom_text(
+    aes(
+      label = sprintf(
+        '%d (%s)',
+        ..count..,
+        ..count.. / sum(..count..)
+      )
+    ),
+    stat = 'count',
+    vjust=-0.25,
+    colour = 'black',
+    size = 2,
+  )+scale_x_discrete(labels = label_wrap(10))+xlab(as.character(var_x))+theme(axis.title.y = element_blank(),axis.text.x=element_text(size=6), axis.title.x = element_text(size=5))
+plot(p)
+ }
+
+
+
+```
+
+
+## overview gesamt
+```{r echo=FALSE, message=FALSE,fig.cap="gesamt", fig.height=2, fig.id='gesamt', label='gesamt'}
+
+for (i in 15:39){
+  var_x<-colnames(gesamt)[i]
+  var_x
+  p <- 
+   ggplot(subset(gesamt,!is.na(gesamt[,i]))) +
+   aes_string(x=var_x)
+  
+
+ p <- p + geom_bar()+
+  scale_x_discrete(labels = label_wrap(10))+xlab(as.character(var_x))+theme(axis.title.y = element_blank(),axis.text.x=element_text(size=6), axis.title.x = element_text(size=5))+
+  scale_fill_brewer(palette = "Accent")
+plot(p)
+ }
+```
+
+
+## overview gesamt nach Gruppen
+
+```{r echo=FALSE, message=FALSE,fig.cap="gesamt_grouped", fig.height=2, fig.id='gesamt_grouped', label='gesamt_grouped'}
+
+for (i in 15:39){
+  var_x<-colnames(gesamt)[i]
+  var_x
+  p <- 
+   ggplot(subset(gesamt,!is.na(gesamt[,i])), aes(group=group)) +
+   aes_string(x=var_x)
+  
+
+ p <- p + geom_bar(aes(fill = group),position = "dodge",stat="count")+
+  scale_x_discrete(labels = label_wrap(10))+xlab(as.character(var_x))+theme(axis.title.y = element_blank(),axis.text.x=element_text(size=6), axis.title.x = element_text(size=5))+
+  scale_fill_brewer(palette = "Accent")
+plot(p)
+ }
+```
+## overview bike
+
+```{r echo=FALSE, message=FALSE,fig.cap="bike", fig.height=2, fig.id='bike', label='bike'}
+for (i in 1:54){
+  var_x<-colnames(bike)[i]
+  var_x
+  p <- 
+   ggplot(subset(bike,!is.na(bike[,i]))) +
+   aes_string(var_x)
+  
+
+ p <- p + geom_bar()+
+  geom_text(
+    aes(
+      label = sprintf(
+        '%d (%s)',
+        ..count..,
+        ..count.. / sum(..count..)
+      )
+    ),
+    stat = 'count',
+    vjust=-0.25,
+    colour = 'black',
+    size = 2,
+  )+scale_x_discrete(labels = label_wrap(10))+xlab(as.character(var_x))+theme(axis.title.y = element_blank(),axis.text.x=element_text(size=6), axis.title.x = element_text(size=5))
+plot(p)
+ }
+```
+
+
+
+## overview non-bike
+```{r echo=FALSE, message=FALSE,fig.cap="nonbike", fig.height=2, fig.id='nonbike', label='nonbike'}
+for (i in c(1:45,47:52)){
+  var_x<-colnames(non_bike)[i]
+  var_x
+  p <- 
+   ggplot(subset(non_bike,!is.na(non_bike[,i]))) +
+   aes_string(var_x)
+  
+
+ p <- p + geom_bar()+
+  geom_text(
+    aes(
+      label = sprintf(
+        '%d (%s)',
+        ..count..,
+        ..count.. / sum(..count..)
+      )
+    ),
+    stat = 'count',
+    vjust=-0.25,
+    colour = 'black',
+    size = 2,
+  )+scale_x_discrete(labels = label_wrap(10))+xlab(as.character(var_x))+theme(axis.title.y = element_blank(),axis.text.x=element_text(size=6), axis.title.x = element_text(size=5))
+plot(p)
+ }
+```
