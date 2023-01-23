@@ -1,4 +1,8 @@
 library(stringr)
+#library(tidyverse)
+library(plyr)
+library(forcats)
+
 
 bike <- read.csv("preprocessed/bike.csv")
 
@@ -10,7 +14,7 @@ bike <- bike[, c(2,3,24:48)]
 colnames(bike)[3:27] = sapply(strsplit(as.character(colnames(bike)[3:27]), "gestalten..."), `[`, 2)
 
 colname_dict <- c(
-  'Zu.welcher.Gruppe.an.der.HU.gehören.Sie.' = 'Zu.welcher.Gruppe.an.der.HU.gehören.Sie.',
+  'Zu.welcher.Gruppe.an.der.HU.gehören.Sie.' = 'Status',
   'An.welchem.Campus.sind.Sie.am.häufigsten...Für.genauere.Informationen.bezüglich.der.Einordnung.der.Campi..schauen.Sie.bitte.hier..Nord..Süd.Mitte..Adlershof..' = 'Campus',
   'Es.sollte.einen.Verleih.von.Lastenrädern.geben..da.ich.häufig.Gepäck.mitnehme..das.unpraktisch.oder.zu.schwer.zu.transportieren.ist..' = 'Verleih_Lastenrad',
   'Ich.brauche.Zugang.zu.einer.Fahrrad.Selbsthilfewerkstatt.mit.professioneller.Unterstützung..' = 'Zugang_Werkstatt',
@@ -51,9 +55,20 @@ for (i in colnames(bike)){
   if (endsWith(i, '1') == TRUE)
   {
     j = gsub('_1', '', i)
-  #  print(i)
-  #  print(j)
     bike[, j][!is.na(bike[,i])] = bike[,i][!is.na(bike[,i])]
     bike <- bike[ , ! names(bike) %in% c(i)]      
   }
 }
+
+bike_pure <- bike[ , ! names(bike) %in% c("Status", "Campus")]
+counts <- ldply( bike_pure, function(x) data.frame( table(x), prop.table( table(x) ) )  )
+
+counts %>%
+  mutate(x = fct_relevel(x, "Trifft nicht zu", "Trifft eher nicht zu", "Weiß nicht", "Trifft eher zu", "Trifft zu"),
+#         .id = fct_reorder(.id, val)
+         ) %>%
+  ggplot( aes(x=.id ,y=Freq.1, fill=x)) +
+  geom_col() + 
+  coord_flip() +
+  labs(x="Angebot", y="Prozent der Befragten (Radfahrer*innen)") +
+  scale_fill_manual(values=c("#949494","#A8A8A8", "#BABABA", "#E55C19", "#E58A19"))
