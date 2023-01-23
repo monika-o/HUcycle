@@ -52,9 +52,8 @@ count_answers <- function(campus) {
   counts <- cbind(Maßnahme = rownames(counts), counts)
   rownames(counts) <- 1:nrow(counts)
   counts$Maßnahme <- as.character(counts$Maßnahme)
-  print("bla")
   counts$Maßnahme <- sapply(strsplit(as.character(counts$Maßnahme), ".F"), `[`, 1)
-
+  
   return(counts)
   }
 
@@ -83,5 +82,6 @@ data_long1$value <- as.numeric(data_long1$value)
 
 ggplot(data_long1, aes(x=Maßnahme, y=value, fill=variable) ) + 
   geom_col() + facet_grid(.~campus) +
-  theme(axis.text.x = element_text(angle = 90)) 
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_fill_manual(values=c("#949494","#A8A8A8", "#BABABA", "#CC6666", "#66CC99"))
 
