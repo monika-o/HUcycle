@@ -3,6 +3,8 @@
 
 library(dplyr)
 library(ggplot2)
+library("reshape2")
+# library(tidyverse)
 
 # relevante Zielgruppe: Nichtradfahrer, die von den eigenen Fähigkeiten (C1.) 
 # und der eigenen Ausstattung (C2.) her Fahrrad fahren könnten und die auch 
@@ -54,7 +56,6 @@ count_answers <- function(campus) {
 
 # Anpassung des Formats zum Plotten:
 adl_counts <- count_answers(adl)
-
 adl_counts$campus <- rep("Adlershof",nrow(adl_counts))
 ms_counts <- count_answers(ms)
 ms_counts$campus <- rep("Mitte",nrow(ms_counts))
@@ -62,14 +63,20 @@ no_counts <- count_answers(no)
 no_counts$campus <- rep("Nord",nrow(no_counts))
 
 counts_joined = rbind(adl_counts, ms_counts, no_counts)
-colnames(counts_joined)[6] <- 'Trifft_zu'
-colnames(counts_joined)[5] <- 'Trifft_eher_zu'
 
-counts_joined$Trifft_zu <- as.numeric(counts_joined$Trifft_zu)
-counts_joined$Trifft_eher_zu <- as.numeric(counts_joined$Trifft_eher_zu)
 
-counts_joined$positiv <- counts_joined$Trifft_zu + counts_joined$Trifft_eher_zu
+# counts_joined$positiv <- counts_joined$Trifft_zu + counts_joined$Trifft_eher_zu
 
-# Plotten:
-ggplot(counts_joined, aes(fill=Maßnahme, y=positiv, x=campus)) + 
-  geom_bar(position='dodge', stat='identity')
+# aggregoert positiv plotten:
+# ggplot(counts_joined, aes(fill=Maßnahme, y=positiv, x=campus)) + 
+#  geom_bar(position='dodge', stat='identity')
+
+
+data_long1 <- melt(counts_joined,
+                   id.vars = c("Maßnahme", "campus"))
+
+data_long1$value <- as.numeric(data_long1$value)
+
+ggplot(data_long1, aes(x=Maßnahme, y=value, fill=variable) ) + 
+  geom_col() + facet_grid(.~campus) +
+  theme(axis.text.x = element_text(angle = 90)) 
