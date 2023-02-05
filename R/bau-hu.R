@@ -33,12 +33,17 @@ plot_grouped_stacked_barplot <- function(df, variablelist){
   no_counts$campus <- rep("Nord",nrow(no_counts))
 
   counts_joined = rbind(adl_counts, ms_counts, no_counts)
-
-  counts_joined %>%
+  counts_joined_perc <- counts_joined %>%                                    # Calculate percentage by group
+    group_by(Maßnahme, campus) %>%
+    mutate(perc = value / sum(value)) %>% 
+    as.data.frame()
+  print(counts_joined_perc)
+  
+  counts_joined_perc %>%
     mutate(variable = fct_relevel(variable, "Trifft nicht zu", "Trifft eher nicht zu", "Weiß nicht", "Trifft eher zu", "Trifft zu"),
   #         .id = fct_reorder(.id, val)
   ) %>%
-  ggplot(counts_joined, mapping = aes(x=Maßnahme, y=value, fill=variable) ) + 
+  ggplot(counts_joined_perc, mapping = aes(x=Maßnahme, y=perc, fill=variable) ) + 
     geom_col() + facet_grid(.~campus) +
     theme(axis.text.x = element_text(angle = 90)) +
     scale_fill_manual(values=c("#949494","#A8A8A8", "#BABABA", "#E58A19", "#E55C19"))
@@ -69,8 +74,8 @@ bike <- read.csv("preprocessed/bike_cleaned.csv")
 
 
 ### Verarbeitung und Plotten mittels der obigen Funktionen
-# variablelist <- c("Diensträder", "Info_Werkstatt", "Umgebungsplan")
-variablelist <- c("HU_Dach", "HU_Diebstahl", "HU_Duschen",  "HU_Ladestation", "HU_Spinde")
-plot_grouped_stacked_barplot(pot_bike, variablelist)
+variablelist <- c("Diensträder", "Info_Werkstatt", "Umgebungsplan")
+# variablelist <- c("HU_Dach", "HU_Diebstahl", "HU_Duschen",  "HU_Ladestation", "HU_Spinde")
+# plot_grouped_stacked_barplot(pot_bike, variablelist)
 
-# plot_grouped_stacked_barplot(bike, variablelist)
+plot_grouped_stacked_barplot(bike, variablelist)
