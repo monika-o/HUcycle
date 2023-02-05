@@ -10,11 +10,11 @@ library("reshape2")
 # und der eigenen Ausstattung (C2.) her Fahrrad fahren könnten und die auch 
 # von den “weiteren Faktoren” (C5) nicht abgehalten werden
 
-non_bike <- read.csv("non_bike.csv")
+non_bike <- read.csv("preprocessed/non_bike_cleaned.csv")
 # crit_col <- c(9)
 # crit_col <- c(8,9,10,11,12,13,14,15,16,32,33,34,35)
 # Ohne alle diese Leute bleiben zu wenige übrig. Schärfere Kriterien:
-crit_col <- c(11,33)
+crit_col <- c("selbst_zu_weit", "selbst_körperlicheEinschränkung")
 # Nur Entfernung und körperliche Einschränkung
 pot_bike <- non_bike
 
@@ -25,23 +25,12 @@ for (i in crit_col)
                       ]
   }
 
-# Gruppierung nach Campi: Spalte 4
 
-# rename relevant columns with keywords
-colnames(pot_bike)[18] <- 'Spinde'
-colnames(pot_bike)[19] <- 'Diebstahl'
-colnames(pot_bike)[20] <- 'Dach'
-colnames(pot_bike)[21] <- 'Dusche'
-colnames(pot_bike)[22] <- 'Ladestation'
 
-adl <- pot_bike[pot_bike[3] == "Adlershof",]
-ms <- pot_bike[pot_bike[3] == "Süd/Mitte",]
-no <- pot_bike[pot_bike[3] == "Nord",]
-
-count_answers <- function(campus) {
-  counts <- data.frame("Spinde" = table(campus$Spinde), "Diebstahl" = table(campus$Diebstahl),
-                           "Dach" = table(campus$Dach), "Dusche" = table(campus$Dusche),
-                           "Ladestation" = table(campus$Ladestation))
+count_answers <- function(campusdf) {
+  counts <- data.frame("Spinde" = table(campusdf$HU_Spinde), "Diebstahl" = table(campusdf$HU_Diebstahl),
+                           "Dach" = table(campusdf$HU_Dach), "Dusche" = table(campusdf$HU_Dusche),
+                           "Ladestation" = table(campusdf$HU_Ladestation))
   # table(...) erzeugt den Index immer mit, deshalb werden überflüssige
   # Index-Spalten hier entfernt:
   counts <- counts %>% select(-one_of('Diebstahl.Var1', 'Dach.Var1', 'Dusche.Var1', 'Ladestation.Var1')) 
@@ -57,7 +46,11 @@ count_answers <- function(campus) {
   return(counts)
   }
 
-# Anpassung des Formats zum Plotten:
+
+adl <- pot_bike[pot_bike["Campus"] == "Adlershof",]
+ms <- pot_bike[pot_bike["Campus"] == "Süd/Mitte",]
+no <- pot_bike[pot_bike["Campus"] == "Nord",]
+
 adl_counts <- count_answers(adl)
 adl_counts$campus <- rep("Adlershof",nrow(adl_counts))
 ms_counts <- count_answers(ms)
@@ -83,5 +76,5 @@ data_long1$value <- as.numeric(data_long1$value)
 ggplot(data_long1, aes(x=Maßnahme, y=value, fill=variable) ) + 
   geom_col() + facet_grid(.~campus) +
   theme(axis.text.x = element_text(angle = 90)) +
-  scale_fill_manual(values=c("#949494","#A8A8A8", "#BABABA", "#CC6666", "#66CC99"))
+  scale_fill_manual(values=c("#949494","#A8A8A8", "#BABABA", "#E55C19", "#E58A19"))
 
